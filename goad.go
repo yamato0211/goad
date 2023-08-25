@@ -2,6 +2,7 @@ package goad
 
 import (
 	"errors"
+	"log"
 	"net/http"
 )
 
@@ -15,7 +16,7 @@ type Router struct {
 
 func (r *Router) Get(path string, handler func(w http.ResponseWriter, r *http.Request)) error {
 	if r.routingTable[path] != nil {
-		return errors.New("existed")
+		return errors.New("this path is already used")
 	}
 
 	r.routingTable[path] = handler
@@ -43,5 +44,8 @@ func New() *Engine {
 }
 
 func (e *Engine) Run(addr string) {
-	http.ListenAndServe(addr, e)
+	err := http.ListenAndServe(addr, e)
+	if err != nil {
+		log.Fatalf("Could not start server: %s", err)
+	}
 }
