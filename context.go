@@ -7,14 +7,16 @@ import (
 )
 
 type Context struct {
-	w http.ResponseWriter
-	r *http.Request
+	w      http.ResponseWriter
+	r      *http.Request
+	params map[string]string
 }
 
 func NewContext(w http.ResponseWriter, r *http.Request) *Context {
 	return &Context{
-		w: w,
-		r: r,
+		w:      w,
+		r:      r,
+		params: map[string]string{},
 	}
 }
 
@@ -61,4 +63,17 @@ func (ctx *Context) QueryWithDefault(key string, defaultValue string) string {
 	}
 
 	return defaultValue
+}
+
+func (ctx *Context) SetParams(params map[string]string) {
+	ctx.params = params
+}
+
+func (ctx *Context) Param(key string) string {
+	params := ctx.params
+
+	if v, ok := params[key]; ok {
+		return v
+	}
+	return ""
 }

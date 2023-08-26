@@ -8,10 +8,11 @@ type Node struct {
 	children []*Node
 	handler  func(ctx *Context)
 	param    string
+	parent   *Node
 }
 
-func NewNode() Node {
-	return Node{
+func NewNode() *Node {
+	return &Node{
 		children: []*Node{},
 		param:    "",
 	}
@@ -31,6 +32,7 @@ func (n *Node) Insert(path string, handler func(ctx *Context)) {
 			child = &Node{
 				param:    param,
 				children: []*Node{},
+				parent:   node,
 			}
 			node.children = append(node.children, child)
 		}
@@ -50,15 +52,9 @@ func (n *Node) findChild(param string) *Node {
 	return nil
 }
 
-func (n *Node) Search(path string) func(ctx *Context) {
+func (n *Node) Search(path string) *Node {
 	params := strings.Split(path, "/")
-	result := dfs(n, params)
-
-	if result == nil {
-		return nil
-	}
-
-	return result.handler
+	return dfs(n, params)
 }
 
 func dfs(node *Node, params []string) *Node {
@@ -88,4 +84,19 @@ func dfs(node *Node, params []string) *Node {
 		}
 	}
 	return nil
+}
+
+func (n *Node) ParseParams(path string) map[string]string {
+	node := n
+	path = strings.TrimSuffix(path, "/")
+	params := strings.Split(path, "/")
+	paramMap := make(map[string]string)
+	for i := len(params) - 1; i >= 0; i-- {
+		if hasColonPrefix(node.param) {
+			paramMap[node.param] = params[i]
+		}
+		node = node.parent
+	}
+
+	return paramMap
 }
