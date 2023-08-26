@@ -14,7 +14,7 @@ type Router struct {
 	trei Node
 }
 
-func (r *Router) Get(path string, handler func(w http.ResponseWriter, r *http.Request)) error {
+func (r *Router) Get(path string, handler func(ctx *Context)) error {
 	path = strings.TrimSuffix(path, "/")
 	existedHandler := r.trei.Search(path)
 	if existedHandler != nil {
@@ -25,6 +25,7 @@ func (r *Router) Get(path string, handler func(w http.ResponseWriter, r *http.Re
 }
 
 func (h *Engine) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	ctx := NewContext(w, r)
 	if r.Method == "GET" {
 		path := strings.TrimSuffix(r.URL.Path, "/")
 		handler := h.Router.trei.Search(path)
@@ -32,7 +33,7 @@ func (h *Engine) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusNotFound)
 			return
 		}
-		handler(w, r)
+		handler(ctx)
 		return
 	}
 }

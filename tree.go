@@ -1,13 +1,12 @@
 package goad
 
 import (
-	"net/http"
 	"strings"
 )
 
 type Node struct {
 	children []*Node
-	handler  func(w http.ResponseWriter, r *http.Request)
+	handler  func(ctx *Context)
 	param    string
 }
 
@@ -22,7 +21,7 @@ func hasColonPrefix(param string) bool {
 	return strings.HasPrefix(param, ":")
 }
 
-func (n *Node) Insert(path string, handler func(w http.ResponseWriter, r *http.Request)) {
+func (n *Node) Insert(path string, handler func(ctx *Context)) {
 	node := n
 	params := strings.Split(path, "/")
 	for _, param := range params {
@@ -51,7 +50,7 @@ func (n *Node) findChild(param string) *Node {
 	return nil
 }
 
-func (n *Node) Search(path string) func(w http.ResponseWriter, r *http.Request) {
+func (n *Node) Search(path string) func(ctx *Context) {
 	params := strings.Split(path, "/")
 	result := dfs(n, params)
 
