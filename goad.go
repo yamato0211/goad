@@ -1,9 +1,9 @@
 package goad
 
 import (
-	"errors"
 	"log"
 	"net/http"
+	"strings"
 )
 
 type Engine struct {
@@ -11,21 +11,23 @@ type Engine struct {
 }
 
 type Router struct {
-	routingTable map[string]func(w http.ResponseWriter, r *http.Request)
+	trei Node
 }
 
 func (r *Router) Get(path string, handler func(w http.ResponseWriter, r *http.Request)) error {
-	if r.routingTable[path] != nil {
-		return errors.New("this path is already used")
+	path = strings.TrimSuffix(path, "/")
+	existedHandler := r.trei.Search(path)
+	if existedHandler != nil {
+		panic("this path already used")
 	}
-
-	r.routingTable[path] = handler
+	r.trei.Insert(path, handler)
 	return nil
 }
 
 func (h *Engine) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
-		handler := h.Router.routingTable[r.URL.Path]
+		path := strings.TrimSuffix(r.URL.Path, "/")
+		handler := h.Router.trei.Search(path)
 		if handler == nil {
 			w.WriteHeader(http.StatusNotFound)
 			return
@@ -38,7 +40,7 @@ func (h *Engine) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func New() *Engine {
 	return &Engine{
 		Router: &Router{
-			routingTable: make(map[string]func(w http.ResponseWriter, r *http.Request)),
+			trei: NewNode(),
 		},
 	}
 }
